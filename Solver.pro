@@ -52,11 +52,6 @@ LIBS += \
 
 QMAKE_CXXFLAGS += -std=gnu++0x
 
-OTHER_FILES += \
-    main.qml
-
-RESOURCES += \
-    res.qrc
 
 
 
