@@ -24,9 +24,9 @@ public:
     virtual int getQml(QUrl& qml) const = 0;
 
 protected:
-    virtual ~ISolver() = default;
+    virtual ~ISolver(){}
 
-    ISolver() = default;
+    ISolver(){}
 
 private:
     /*non default copyable*/
