@@ -18,6 +18,14 @@
     qmsg += __FUNCTION__; \
     ILog::report(qmsg.toStdString().c_str())
 
+
+extern "C" {
+    SHARED_EXPORT void * getBrocker()
+    {
+        return (IBrocker *)(new Solver());
+    }
+}
+
 bool Solver::canCastTo(Type type) const
 {
     return type == IBrocker::SOLVER;
