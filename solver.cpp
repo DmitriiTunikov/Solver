@@ -211,11 +211,6 @@ int Solver::solve()
     if (ec != ERR_OK)
         return ec;
 
-    double step[2] = {0.241 / 2, 0.595 / 2};
-    IVector *step_v = Vector::createVector(2, step);
-
-    it->setStep(step_v);
-
     while (it->doStep() == ERR_OK)
     {
         IVector *a = tmp.data();
@@ -237,8 +232,9 @@ int Solver::solve()
     for (size_t i = 0; i < m_argsDim; i++){
         double x;
         res->getCoord(i, x);
-        ILog::report(QString::number(x).toStdString().c_str());
+        REPORT(QString::number(x).toStdString().c_str());
     }
+    m_solved = true;
     return ERR_OK;
 }
 
