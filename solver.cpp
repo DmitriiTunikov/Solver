@@ -43,16 +43,17 @@ void * Solver::getInterfaceImpl(Type type) const
 
 int Solver::release()
 {
-    m_start.reset();
-    m_end.reset();
-    m_solution.reset();
-    m_params.reset();
-
+    delete this;
     return ERR_OK;
 }
 
 Solver::~Solver()
 {
+    m_start.reset();
+    m_end.reset();
+    m_solution.reset();
+    m_params.reset();
+    m_problem = NULL;
 }
 
 Solver::Solver() : ISolver(){
@@ -157,8 +158,8 @@ int Solver::setProblem(IProblem *ptr) {
 }
 
 int Solver::initCompactAndIt(QScopedPointer<ICompact> &compact,
-                             ICompact::IIterator* it,
-                             ICompact::IIterator* itEnd)
+                             ICompact::IIterator*& it,
+                             ICompact::IIterator*& itEnd)
 {
     compact.reset(Compact::createCompact(m_start.data(), m_end.data()));
     if (compact.isNull())

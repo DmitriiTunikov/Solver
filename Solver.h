@@ -43,8 +43,8 @@ private:
     void operator=(const ISolver& other) = delete;
     int getVecFromStr(const QString& str, QScopedPointer<IVector> &res);
     int initCompactAndIt(QScopedPointer<ICompact> &compact,
-                                 ICompact::IIterator* it,
-                                 ICompact::IIterator* itEnd);
+                                 ICompact::IIterator*& it,
+                                 ICompact::IIterator*& itEnd);
 };
 
 #endif // SOLVER_H
