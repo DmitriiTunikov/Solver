@@ -66,7 +66,7 @@ int Solver::getId() const {
 }
 
 int Solver::setParams(IVector const* params) {
-    m_params.reset(params);
+    m_params.reset(params->clone());
     if (m_params.isNull())
     {
         REPORT("wrong argument");
@@ -84,7 +84,7 @@ int Solver::getVecFromStr(const QString& str, QScopedPointer<IVector> &res)
         REPORT("wrong input args count");
         return ERR_DIMENSIONS_MISMATCH;
     }
-    if (res == NULL)
+    if (res.isNull())
     {
         REPORT("Solver::getVecFromStr: wrong input args - res == NULL");
         return ERR_WRONG_ARG;
