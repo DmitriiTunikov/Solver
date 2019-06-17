@@ -18,13 +18,6 @@
     qmsg += __FUNCTION__; \
     ILog::report(qmsg.toStdString().c_str())
 
-extern "C" {
-    SHARED_EXPORT void * getBrocker()
-    {
-        return (IBrocker *)(new Solver());
-    }
-}
-
 bool Solver::canCastTo(Type type) const
 {
     return type == IBrocker::SOLVER;
@@ -105,7 +98,7 @@ int Solver::getVecFromStr(const QString& str, QScopedPointer<IVector> &res)
 int Solver::setParams(QString& str) {
     QStringList paramsList = str.split(';');
 
-    if (paramsList.size() != (int)m_solverParamsCount)
+    if (paramsList.size() - 1 != (int)m_solverParamsCount)
     {
         REPORT("Solver::setParams - wrong params count");
         return ERR_WRONG_ARG;
@@ -131,7 +124,7 @@ int Solver::setProblem(IProblem *ptr) {
     m_solved = false;
     m_problem.reset(ptr);
     m_problem->getArgsDim(m_argsDim);
-    m_problem->getArgsDim(m_paramsDim);
+    m_problem->getParamsDim(m_paramsDim);
 
     QScopedPointer<double, QScopedPointerArrayDeleter<double> > a (new (std::nothrow) double[m_argsDim]);
     QScopedPointer<double, QScopedPointerArrayDeleter<double> > b (new (std::nothrow) double[m_argsDim]);
@@ -210,7 +203,12 @@ int Solver::solve()
     if (ec != ERR_OK)
         return ec;
 
-    while (it->doStep() != ERR_OUT_OF_RANGE)
+    double step[2] = {0.241 / 2, 0.595 / 2};
+    IVector *step_v = Vector::createVector(2, step);
+
+    it->setStep(step_v);
+
+    while (it->doStep() == ERR_OK)
     {
         IVector *a = tmp.data();
         ec = compact->getByIterator(it.data(), a);
@@ -218,14 +216,20 @@ int Solver::solve()
             return ec;
 
         double newMin = 0;
-        ec = m_problem->goalFunction(tmp.data(), m_params.data(), newMin);
+        ec = m_problem->goalFunction(a, m_params.data(), newMin);
         if (ec != ERR_OK)
             return ec;
         if (newMin < min)
         {
             min = newMin;
-            m_solution.reset(tmp.data()->clone());
+            m_solution.reset(a->clone());
         }
+    }
+    IVector *res = m_solution.data();
+    for (size_t i = 0; i < m_argsDim; i++){
+        double x;
+        res->getCoord(i, x);
+        ILog::report(QString::number(x).toStdString().c_str());
     }
     return ERR_OK;
 }
