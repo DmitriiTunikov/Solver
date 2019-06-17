@@ -130,7 +130,7 @@ int Solver::setProblem(IProblem *ptr) {
         return ERR_WRONG_ARG;
     }
     m_solved = false;
-    m_problem.reset(ptr);
+    m_problem = ptr;
     m_problem->getArgsDim(m_argsDim);
     m_problem->getParamsDim(m_paramsDim);
 
@@ -157,8 +157,8 @@ int Solver::setProblem(IProblem *ptr) {
 }
 
 int Solver::initCompactAndIt(QScopedPointer<ICompact> &compact,
-                             QScopedPointer<ICompact::IIterator> &it,
-                             QScopedPointer<ICompact::IIterator> &itEnd)
+                             ICompact::IIterator* it,
+                             ICompact::IIterator* itEnd)
 {
     compact.reset(Compact::createCompact(m_start.data(), m_end.data()));
     if (compact.isNull())
@@ -166,11 +166,13 @@ int Solver::initCompactAndIt(QScopedPointer<ICompact> &compact,
         REPORT("Solver::initCompactAndIt - can't create compact");
         return ERR_MEMORY_ALLOCATION;
     }
-    it.reset(compact->begin());
-    itEnd.reset(compact->end());
 
-    if (it.isNull() || itEnd.isNull())
+    it = compact->begin();
+    itEnd = compact->end();
+    if (it == NULL || itEnd == NULL)
     {
+        compact->deleteIterator(it);
+        compact->deleteIterator(itEnd);
         REPORT("Solver::initCompactAndIt - can't get begin for compact iterator");
         return ERR_MEMORY_ALLOCATION;
     }
@@ -181,15 +183,21 @@ int Solver::initCompactAndIt(QScopedPointer<ICompact> &compact,
 int Solver::solve()
 {
     QScopedPointer<ICompact> compact;
-    QScopedPointer<ICompact::IIterator> it;
-    QScopedPointer<ICompact::IIterator> itEnd;
+    ICompact::IIterator* it = NULL;
+    ICompact::IIterator* itEnd = NULL;
     int ec = initCompactAndIt(compact, it, itEnd);
     if (ec != ERR_OK)
+    {
+        compact->deleteIterator(itEnd);
+        compact->deleteIterator(it);
         return ec;
+    }
 
     QScopedPointer<double, QScopedPointerArrayDeleter<double> > tmpDouble(new double[m_argsDim]);
     if (tmpDouble.isNull())
     {
+        compact->deleteIterator(itEnd);
+        compact->deleteIterator(it);
         REPORT("Solver::solve - can't allocate memory for calculate minimum");
         return ERR_MEMORY_ALLOCATION;
     }
@@ -197,6 +205,8 @@ int Solver::solve()
     QScopedPointer<IVector> tmp(Vector::createVector(m_argsDim, tmpDouble.data()));
     if (tmp.isNull())
     {
+        compact->deleteIterator(itEnd);
+        compact->deleteIterator(it);
         REPORT("Solver::solve - can't allocate memory for calculate minimum");
         return ERR_MEMORY_ALLOCATION;
     }
@@ -204,24 +214,40 @@ int Solver::solve()
     double min = 0;
 
     IVector* b = m_solution.data();
-    ec = compact->getByIterator(it.data(), b);
+    ec = compact->getByIterator(it, b);
     if (ec != ERR_OK)
+    {
+        compact->deleteIterator(itEnd);
+        compact->deleteIterator(it);
         return ec;
+    }
     ec = m_problem->goalFunction(m_solution.data(), m_params.data(), min);
     if (ec != ERR_OK)
+    {
+        compact->deleteIterator(itEnd);
+        compact->deleteIterator(it);
         return ec;
+    }
 
     while (it->doStep() == ERR_OK)
     {
         IVector *a = tmp.data();
-        ec = compact->getByIterator(it.data(), a);
+        ec = compact->getByIterator(it, a);
         if (ec != ERR_OK)
+        {
+            compact->deleteIterator(itEnd);
+            compact->deleteIterator(it);
             return ec;
+        }
 
         double newMin = 0;
         ec = m_problem->goalFunction(a, m_params.data(), newMin);
         if (ec != ERR_OK)
+        {
+            compact->deleteIterator(itEnd);
+            compact->deleteIterator(it);
             return ec;
+        }
         if (newMin < min)
         {
             min = newMin;
@@ -235,6 +261,8 @@ int Solver::solve()
         REPORT(QString::number(x).toStdString().c_str());
     }
     m_solved = true;
+    compact->deleteIterator(itEnd);
+    compact->deleteIterator(it);
     return ERR_OK;
 }
 
