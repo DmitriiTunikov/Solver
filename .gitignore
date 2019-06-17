@@ -1,0 +1,7 @@
+
+*.a
+*.o
+Makefile
+*.Debug
+*.Release
+*.user
