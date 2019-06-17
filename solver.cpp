@@ -241,6 +241,6 @@ int Solver::getSolution(IVector* &vec)const {
 }
 
 int Solver::getQml(QUrl& qml) const {
-    qml = QUrl::fromLocalFile("main.qml");
+    qml = QUrl("main.qml");
     return ERR_OK;
 }
