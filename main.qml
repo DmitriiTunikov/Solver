@@ -40,7 +40,7 @@ Rectangle {
         width: 144
         height: 48
         text: qsTr("Input start point")
-        horizontalAlignment: AlignHCenter
+        horizontalAlignment: TextInput.AlignHCenter
         transformOrigin: Item.Center
         z: 0
         font.family: "Comic Sans MS"
