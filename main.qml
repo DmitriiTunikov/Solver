@@ -45,6 +45,8 @@ Rectangle {
         z: 0
         font.family: "Comic Sans MS"
         font.pixelSize: 16
+
+        property string hasData: "y"
     }
 
     TextInput {
@@ -59,6 +61,8 @@ Rectangle {
         transformOrigin: Item.Center
         font.family: "Comic Sans MS"
         font.pixelSize: 16
+
+        property string hasData: "y"
     }
 
     Text {
